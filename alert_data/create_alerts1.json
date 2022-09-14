@@ -1,0 +1,11 @@
+[
+    {
+        "alertOperation": "create",
+        "event": "JOINED_GROUP",
+        "notificationType": "USER",
+        "notificationEmailAddress": "magnus.strale@mongodb.com",
+        "notificationUsername":  "magnus.strale@mongodb.com",
+        "notificationEmailEnabled": "",
+        "notificationDelayMin": 500
+    }
+]
