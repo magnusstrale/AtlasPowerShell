@@ -1,2 +1,2 @@
 # AtlasPowerShell
-Powershell scripts for adminitering Atlas
+Powershell scripts for administering Atlas
