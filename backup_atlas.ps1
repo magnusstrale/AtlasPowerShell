@@ -14,9 +14,9 @@ has no obligation to support it.
 
 # Parameter help description
 param(
-    [string]$clusterName, # Name of cluster to back up
-    [string]$description, # Description for the snapshot
-    [string]$atlasProfile, # (optional) Name of Atlas CLI profile to use
+    [string]$clusterName,   # Name of cluster to back up
+    [string]$description,   # Description for the snapshot
+    [string]$atlasProfile,  # (optional) Name of Atlas CLI profile to use
     [string]$projectId      # (optional) ID of project to use for the backup operation 
 )
 
