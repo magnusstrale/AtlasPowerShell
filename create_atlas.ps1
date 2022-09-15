@@ -110,6 +110,10 @@ function AlertsFilename() {
     "Alerts_$($environment).json"
 }
 
+function AuditLogFilterFilename() {
+    "AuditLogFilter_$($environment).json"
+}
+
 function ProviderSpecificRegionName() {
     switch ($provider.ToUpper()) {
         "AWS" {
@@ -149,8 +153,12 @@ function CreateProject($projectName) {
     $result.id
 }
 
-function CreateAlerts() {
-    & "$PSScriptRoot\alerts_atlas.ps1" restore -fileName $(AlertsFilename) -publicKey $($publicKey) -privateKey $($privateKey) -atlasProfile $($atlasProfile)
+function CreateAlerts($fileName) {
+    if (-not (Test-Path $fileName)) {
+        Write-Host "File $($fileName) is missing. Cannot create alerts."
+        Exit 1
+    }
+    & "$PSScriptRoot\alerts_atlas.ps1" restore -fileName $($fileName) -publicKey $($publicKey) -privateKey $($privateKey) -atlasProfile $($atlasProfile)
 }
 
 function CreateCluster($clusterName, $enableBackup) {
@@ -164,6 +172,7 @@ function CreateCluster($clusterName, $enableBackup) {
         Start-Sleep -Seconds 30
         $result = Invoke-AtlasCommand "cluster describe $(ClusterName)"
     } while ($result.stateName -eq "CREATING")
+    
     if ($result.stateName -ne "IDLE") {
         Write-Host "Something went wrong when creating cluster - state is ""$($result.stateName)"", expected ""IDLE"""
         Exit 1
@@ -200,18 +209,22 @@ function CreatePrivateEndpoint() {
     }
 }
 
+function CreateAuditLogFilters() {
+
+}
+
 Write-Host "Creating project $(ProjectName)"
-$projectId = CreateProject ProjectName
+#$projectId = CreateProject ProjectName
 $projectId = "6228b4a3311b6a2c9c48132e"
 Write-Host "Project $(ProjectName) created with ID $($projectId)"
 
 Write-Host "Creating alerts based on $(AlertsFilename)"
-CreateAlerts
+#CreateAlerts AlertsFilename
 Write-Host "Alerts created"
 
 Write-Host "Creating cluster $(ClusterName) as $($tier), with $($provider) in region $($region)"
 $enableBackup = -not ("M0", "M2", "M5").Contains($tier)
-CreateCluster ClusterName $enableBackup
+#CreateCluster ClusterName $enableBackup
 Write-Host "Cluster created"
 
 if ($enableBackup) {
@@ -227,9 +240,13 @@ $userName = UserName
 $password = Password
 $env:AtlasPassword = $password
 Write-Host "Creating user $($userName) with password $($password), password available in environment variable $env:AtlasPassword"
-CreateUser $userName $password
+#CreateUser $userName $password
 Write-Host "User created"
 
 Write-Host "Creating private endpoint connection"
-$endpoint = CreatePrivateEndpoint
+#$endpoint = CreatePrivateEndpoint
 Write-Host "Private endpoint created $($endpoint)"
+
+Write-Host "Creating audit log filters"
+#CreateAuditLogFilters AuditLogFilterFilename
+Write-Host "Audit log filters created"
