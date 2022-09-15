@@ -15,14 +15,17 @@ has no obligation to support it.
 # Parameter help description
 # TODO - StoneX to review and update default values
 param(
-    [string]$team,
-    [string]$service,
-    [string]$environment,
+    [Parameter(Mandatory)] [string]$team,
+    [Parameter(Mandatory)] [string]$service,
+    [Parameter(Mandatory)] [string]$environment,
     [string]$publicKey,
     [string]$privateKey,
+    [ValidateSet("M0", "M2", "M5", "M10", "M20", "M30", "M40", "M50", "M60", "M80", "M140", "M200", "M300", "M400", "M700", IgnoreCase=$false)]
     [string]$tier = "M10", # change to ?
-    [string]$region = "EU_NORTH_1", # change to "UK_SOUTH" as default for StoneX?
-    [string]$provider = "AWS", # change to "AZURE" as default for StoneX
+    [string]$region = "UK_SOUTH", # change to "UK_SOUTH" as default for StoneX?
+    [ValidateSet("AZURE", "AWS", IgnoreCase=$false)]
+    [string]$provider = "AZURE",
+    [ValidateSet("4.2", "4.4", "5.0", "6.0")]
     [string]$mdbVersion = "5.0", # Version of MongoDB to create
     [string]$role = "readWriteAnyDatabase@admin", # Default role for the created user
     [string]$atlasProfile = "default"
@@ -115,7 +118,7 @@ function AuditLogFilterFilename() {
 }
 
 function ProviderSpecificRegionName() {
-    switch ($provider.ToUpper()) {
+    switch ($provider) {
         "AWS" {
             $region.ToLower().Replace("_", "-")
         }
@@ -140,10 +143,6 @@ function ProviderSpecificRegionName() {
                     Exit 1
                 }
             }
-        }
-        default {
-            Write-Host "Cloud provider $($provider) is not yet supported in this script."
-            Exit 1
         }
     }
 }
@@ -249,13 +248,9 @@ function CreatePrivateEndpoint() {
         Write-Host "Private endpoint reports status ""$($result.status)"", expected ""AVAILABLE"""
     }
 
-    switch ($provider.ToUpper()) {
+    switch ($provider) {
         "AWS" { $result.endpointServiceName }
         "AZURE" { $result.privateLinkServiceResourceId }
-        default {
-            Write-Host "Cloud provider $($provider) is not yet supported in this script."
-            Exit 1        
-        }
     }
 }
 
@@ -263,9 +258,11 @@ function CreateAuditLogFilters() {
 
 }
 
+# TODO - Do some up-front validation of input here, check that alerts and backup plan files exist
+
 Write-Host "Creating project $(ProjectName)"
 #$projectId = CreateProject ProjectName
-$projectId = "6228b4a3311b6a2c9c48132e"
+$projectId = "6322e1a4c7b0e32b2c36d68f" # "6228b4a3311b6a2c9c48132e"
 Write-Host "Project $(ProjectName) created with ID $($projectId)"
 
 $alertsFilename = AlertsFilename
