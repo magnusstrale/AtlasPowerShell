@@ -15,9 +15,9 @@ has no obligation to support it.
 # Parameter help description
 # TODO - StoneX to review and update default values
 param(
-    [string]$team = "GC",
-    [string]$service = "P",
-    [string]$environment = "UAT",
+    [string]$team,
+    [string]$service,
+    [string]$environment,
     [string]$publicKey,
     [string]$privateKey,
     [string]$tier = "M10", # change to ?
@@ -25,7 +25,7 @@ param(
     [string]$provider = "AWS", # change to "AZURE" as default for StoneX
     [string]$mdbVersion = "5.0", # Version of MongoDB to create
     [string]$role = "readWriteAnyDatabase@admin", # Default role for the created user
-    [string]$atlasProfile = "landet"
+    [string]$atlasProfile = "default"
 )
 
 Import-Module -Name Microsoft.PowerShell.Utility
@@ -180,7 +180,7 @@ function CreateCluster($clusterName, $enableBackup) {
 }
 
 function GetPolicyItem($frequencyType, $backupPlan) {
-    $policyItems = $backupPlan.policies[0].$policyItems
+    $policyItems = $backupPlan.policies[0].policyItems
     foreach ($policyItem in $policyItems) {
         if ($policyItem.frequencyType -eq $frequencyType) {
             return $policyItem
@@ -200,13 +200,14 @@ function UpdatePolicy($command, $frequencyType, $newBackupPlan, $existingBackupP
     $newPolicyItem = GetPolicyItem $frequencyType $newBackupPlan
     $existingPolicyItem = GetPolicyItem $frequencyType $existingBackupPlan
 
-    if (EqualPolicyItem($newPolicyItem, $existingPolicyItem)) { return $command }
+    if (EqualPolicyItem $newPolicyItem $existingPolicyItem) { return $command }
 
     $existingPolicyId = $existingBackupPlan.policies[0].id
     $command += " --policy $($existingPolicyId),$($existingPolicyItem.id),$($frequencyType),$($newPolicyItem.frequencyInterval),$($newPolicyItem.retentionUnit),$($newPolicyItem.retentionValue)"
+    $command
 }
 
-function CreateBackupPlan($newBackupPlan) {
+function UpdateBackupPlan($newBackupPlan) {
     $existingBackupPlan = Invoke-AtlasCommand "backup schedule describe $(ClusterName)"
     
     $command = "backup schedule update --clusterName $(ClusterName)"
@@ -223,11 +224,12 @@ function CreateBackupPlan($newBackupPlan) {
 
     foreach ($frequencyType in ("hourly", "daily", "weekly", "monthly"))
     {
+        # BUGBUG - There seems to be issues with weekly frequencyInterval, it only accepts 1 (Monday) and 7 (Sunday) - https://jira.mongodb.org/browse/PRODTRIAGE-3228
         $command = UpdatePolicy $command $frequencyType $newBackupPlan $existingBackupPlan
     }
 
     if ($originalState -ne $command) {
-        Invoke-AtlasCommand $command
+        $result = Invoke-AtlasCommand $command
     }
 }
 
@@ -266,20 +268,21 @@ Write-Host "Creating project $(ProjectName)"
 $projectId = "6228b4a3311b6a2c9c48132e"
 Write-Host "Project $(ProjectName) created with ID $($projectId)"
 
-Write-Host "Creating alerts based on $(AlertsFilename)"
-#CreateAlerts AlertsFilename
+$alertsFilename = AlertsFilename
+Write-Host "Creating alerts based on $($alertsFilename)"
+CreateAlerts $alertsFilename
 Write-Host "Alerts created"
 
 Write-Host "Creating cluster $(ClusterName) as $($tier), with $($provider) in region $($region)"
 $enableBackup = -not ("M0", "M2", "M5").Contains($tier)
-#CreateCluster ClusterName $enableBackup
+CreateCluster ClusterName $enableBackup
 Write-Host "Cluster created"
 
 if ($enableBackup) {
-    Write-Host "Creating backup plan based on $(BackupPlanFilename)"
+    Write-Host "Updating backup plan based on $(BackupPlanFilename)"
     $newBackupPlan = Get-Content -Raw "$(BackupPlanFilename)" | ConvertFrom-Json
-    CreateBackupPlan $newBackupPlan
-    Write-Host "Backup plan created"
+    UpdateBackupPlan $newBackupPlan
+    Write-Host "Backup plan updated"
 }
 else {
     Write-Host "Skipping backup plan stage, since selected tier $($tier) does not support this."
@@ -288,12 +291,12 @@ else {
 $userName = UserName
 $password = Password
 $env:AtlasPassword = $password
-Write-Host "Creating user $($userName) with password $($password), password available in environment variable $env:AtlasPassword"
-#CreateUser $userName $password
+Write-Host "Creating user $($userName) with password $($password), password available in environment variable `$env:AtlasPassword"
+CreateUser $userName $password
 Write-Host "User created"
 
 Write-Host "Creating private endpoint connection"
-#$endpoint = CreatePrivateEndpoint
+$endpoint = CreatePrivateEndpoint
 Write-Host "Private endpoint created $($endpoint)"
 
 Write-Host "Creating audit log filters"
