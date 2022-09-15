@@ -18,6 +18,8 @@ param(
     [string]$team = "GC",
     [string]$service = "pay",
     [string]$environment = "UAT",
+    [string]$publicKey,
+    [string]$privateKey,
     [string]$tier = "M10", # change to ?
     [string]$region = "EU_NORTH_1", # change to "UK_SOUTH" as default for StoneX?
     [string]$provider = "AWS", # change to "AZURE" as default for StoneX
@@ -147,6 +149,10 @@ function CreateProject($projectName) {
     $result.id
 }
 
+function CreateAlerts() {
+    & "$PSScriptRoot\alerts_atlas.ps1" restore -fileName $(AlertsFilename) -publicKey $($publicKey) -privateKey $($privateKey) -atlasProfile $($atlasProfile)
+}
+
 function CreateCluster($clusterName, $enableBackup) {
     $command = "cluster create $(ClusterName) --tier $($tier) --provider $($provider) --region $($region)"
     if ($enableBackup) {
@@ -162,6 +168,10 @@ function CreateCluster($clusterName, $enableBackup) {
         Write-Host "Something went wrong when creating cluster - state is ""$($result.stateName)"", expected ""IDLE"""
         Exit 1
     }
+}
+
+function CreateBackupPlan($backupPlanFilename) {
+
 }
 
 function CreateUser($userName, $password) {
@@ -191,22 +201,22 @@ function CreatePrivateEndpoint() {
 }
 
 Write-Host "Creating project $(ProjectName)"
-#$projectId = CreateProject ProjectName
+$projectId = CreateProject ProjectName
 $projectId = "6228b4a3311b6a2c9c48132e"
 Write-Host "Project $(ProjectName) created with ID $($projectId)"
 
 Write-Host "Creating alerts based on $(AlertsFilename)"
-#& "$PSScriptRoot\alerts_atlas.ps1 restore --fileName $(AlertsFilename) --publicKey qlrtbeas --privateKey 98895cc0-9894-4e21-96aa-53ca930cff94" 
+CreateAlerts
 Write-Host "Alerts created"
 
 Write-Host "Creating cluster $(ClusterName) as $($tier), with $($provider) in region $($region)"
 $enableBackup = -not ("M0", "M2", "M5").Contains($tier)
-#CreateCluster ClusterName $enableBackup
+CreateCluster ClusterName $enableBackup
 Write-Host "Cluster created"
 
 if ($enableBackup) {
     Write-Host "Creating backup plan based on $(BackupPlanFilename)"
-    #CreateBackupPlan BackupPlanFilename
+    CreateBackupPlan BackupPlanFilename
     Write-Host "Backup plan created"
 }
 else {
@@ -217,7 +227,7 @@ $userName = UserName
 $password = Password
 $env:AtlasPassword = $password
 Write-Host "Creating user $($userName) with password $($password), password available in environment variable $env:AtlasPassword"
-#CreateUser $userName $password
+CreateUser $userName $password
 Write-Host "User created"
 
 Write-Host "Creating private endpoint connection"
