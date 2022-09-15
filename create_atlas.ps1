@@ -25,6 +25,8 @@ param(
     [string]$region = "UK_SOUTH", # change to "UK_SOUTH" as default for StoneX?
     [ValidateSet("AZURE", "AWS", IgnoreCase=$false)]
     [string]$provider = "AZURE",
+    [ValidateSet(8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4095)]
+    [int]$diskSizeGB,
     [ValidateSet("4.2", "4.4", "5.0", "6.0")]
     [string]$mdbVersion = "5.0", # Version of MongoDB to create
     [string]$role = "readWriteAnyDatabase@admin", # Default role for the created user
@@ -160,8 +162,31 @@ function CreateAlerts($fileName) {
     & "$PSScriptRoot\alerts_atlas.ps1" restore -fileName $($fileName) -publicKey $($publicKey) -privateKey $($privateKey) -atlasProfile $($atlasProfile)
 }
 
+function MapAzureTierToDefaultDiskSize($tier) {
+    switch($tier) {
+        "M0" { 8 }
+        "M2" { 8 }
+        "M5" { 8 }
+        "M10" { 8 }
+        "M20" { 16 }
+        "M30" { 32 }
+        "M40" { 64 }
+        "M50" { 128 }
+        "M60" { 128 }
+        "M80" { 256 }
+        "M140" { 256 }
+        "M200" { 256 }
+        "M300" { 512 }
+        "M400" { 512 }
+        "M700" { 1024 }
+    }
+}
+
 function CreateCluster($clusterName, $enableBackup) {
     $command = "cluster create $(ClusterName) --tier $($tier) --provider $($provider) --region $($region)"
+    if ($diskSizeGB) {
+        $command += " --diskSizeGB $($diskSizeGB)"
+    }
     if ($enableBackup) {
         $command += " --backup"
     }
@@ -271,6 +296,10 @@ CreateAlerts $alertsFilename
 Write-Host "Alerts created"
 
 Write-Host "Creating cluster $(ClusterName) as $($tier), with $($provider) in region $($region)"
+if (($provider -eq "AZURE") -and -not $diskSizeGB) {
+    # Azure requires this parameter to be set, sice the default value of 2GB is invalid for Azure clusters
+    $diskSizeGB = MapAzureTierToDefaultDiskSize $tier
+}
 $enableBackup = -not ("M0", "M2", "M5").Contains($tier)
 CreateCluster ClusterName $enableBackup
 Write-Host "Cluster created"
