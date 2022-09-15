@@ -21,7 +21,8 @@ param(
     [string]$tier = "M10", # change to ?
     [string]$region = "EU_NORTH_1", # change to "UK_SOUTH" as default for StoneX?
     [string]$provider = "AWS", # change to "AZURE" as default for StoneX
-    [bool]$skipSampleData = $true,
+    [string]$mdbVersion = "5.0", # Version of MongoDB to create
+    [string]$role = "readWriteAnyDatabase@admin", # Default role for the created user
     [string]$atlasProfile = "default"
 )
 
@@ -41,10 +42,13 @@ function Invoke-AtlasCommand([string]$command) {
     $fullCommand | Invoke-Expression | ConvertFrom-Json
 }
 
-function Invoke-SetupAtlasCommand([string]$command) {
+function Invoke-SilentAtlasCommand([string]$command) {
     $fullCommand = "atlas " + $command
     if ($atlasProfile) {
         $fullCommand += " --profile " + $atlasProfile
+    }
+    if ($projectId) {
+        $fullCommand += " --projectId " + $projectId
     }
     Write-Host $fullCommand
     $fullCommand | Invoke-Expression
@@ -62,8 +66,7 @@ function UserName() {
     "svc_$($environment)_$($team)$($service)".ToLower()
 }
 
-function Password()
-{
+function Password() {
     # Characters allowed in the password
     $chars = @(
         "abcdefghijkmnopqrstuvwxyz".ToCharArray(), 
@@ -76,18 +79,16 @@ function Password()
 
     $sets = $chars.Length
     $totalChars = 0
-    ForEach($d in $distribution) { $totalChars += $d }
+    ForEach ($d in $distribution) { $totalChars += $d }
 
     $password = ""
     while ($totalChars -gt 0) {
         $totalChars -= 1
 
         # Pick a random set of characters to choose from, based on still available chars in the given distribution
-        while ($true)
-        {
+        while ($true) {
             $set = $randomObj.Next(0, $sets)
-            if ($distribution[$set] -gt 0)
-            {
+            if ($distribution[$set] -gt 0) {
                 $distribution[$set] -= 1
                 break
             }
@@ -112,12 +113,26 @@ function CreateProject($projectName) {
     $result.id
 }
 
-function CreateCluster($clusterName, $userName, $password) {
-    $command = "setup --clusterName $(ClusterName) --tier $($tier) --provider $($provider) --region $($region) --username $($userName) --password ""$($password)"" --force"
-    if ($skipSampleData) {
-        $command += " --skipSampleData"
+function CreateCluster($clusterName, $enableBackup) {
+    $command = "cluster create $(ClusterName) --tier $($tier) --provider $($provider) --region $($region)"
+    if ($enableBackup) {
+        $command += " --backup"
     }
-    Invoke-SetupAtlasCommand $command
+    $result = Invoke-AtlasCommand $command
+    do {
+        Write-Host "Waiting..."
+        Start-Sleep -Seconds 30
+        $result = Invoke-AtlasCommand "cluster describe $(ClusterName)"
+    } while ($result.stateName -eq "CREATING")
+    if ($result.stateName -ne "IDLE") {
+        Write-Host "Something went wrong when creating cluster - state is ""$($result.stateName)"", expected ""IDLE"""
+        Exit 1
+    }
+}
+
+function CreateUser($userName, $password)
+{
+    $result = Invoke-AtlasCommand "dbuser create --username $($userName) --password ""$($password)"" --role $($role)"
 }
 
 Write-Host "Creating project $(ProjectName)"
@@ -126,14 +141,24 @@ $projectId = "6228b4a3311b6a2c9c48132e"
 Write-Host "Project $(ProjectName) created with ID $($projectId)"
 
 Write-Host "Creating cluster $(ClusterName) as $($tier), with $($provider) in region $($region)"
-$userName = UserName
-$password = Password
-CreateCluster ClusterName $userName $password
+$enableBackup = -not ("M0", "M2", "M5").Contains($tier)
+CreateCluster ClusterName $enableBackup
 Write-Host "Cluster created"
 
-Write-Host "Creating backup plan based on $(BackupPlanFilename)"
-#CreateBackupPlan BackupPlanFilename
-Write-Host "Backup plan created"
+$userName = UserName
+$password = Password
+Write-Host "Creating user $($userName) with password $($password)"
+CreateUser $userName $password
+Write-Host "User created"
+
+if ($enableBackup) {
+    Write-Host "Creating backup plan based on $(BackupPlanFilename)"
+    #CreateBackupPlan BackupPlanFilename
+    Write-Host "Backup plan created"
+}
+else {
+    Write-Host "Skipping backup plan stage, since selected tier ($($tier)) does not support backups."
+}
 
 Write-Host "Creating alerts based on $(AlertsFilename)"
 #& "$PSScriptRoot\alerts_atlas.ps1 restore --fileName $(AlertsFilename) --publicKey qlrtbeas --privateKey 98895cc0-9894-4e21-96aa-53ca930cff94" 
