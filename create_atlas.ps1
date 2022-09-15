@@ -16,7 +16,7 @@ has no obligation to support it.
 # TODO - StoneX to review and update default values
 param(
     [string]$team = "GC",
-    [string]$service = "pay",
+    [string]$service = "P",
     [string]$environment = "UAT",
     [string]$publicKey,
     [string]$privateKey,
@@ -25,7 +25,7 @@ param(
     [string]$provider = "AWS", # change to "AZURE" as default for StoneX
     [string]$mdbVersion = "5.0", # Version of MongoDB to create
     [string]$role = "readWriteAnyDatabase@admin", # Default role for the created user
-    [string]$atlasProfile = "default"
+    [string]$atlasProfile = "landet"
 )
 
 Import-Module -Name Microsoft.PowerShell.Utility
@@ -172,15 +172,63 @@ function CreateCluster($clusterName, $enableBackup) {
         Start-Sleep -Seconds 30
         $result = Invoke-AtlasCommand "cluster describe $(ClusterName)"
     } while ($result.stateName -eq "CREATING")
-    
+
     if ($result.stateName -ne "IDLE") {
         Write-Host "Something went wrong when creating cluster - state is ""$($result.stateName)"", expected ""IDLE"""
         Exit 1
     }
 }
 
-function CreateBackupPlan($backupPlanFilename) {
+function GetPolicyItem($frequencyType, $backupPlan) {
+    $policyItems = $backupPlan.policies[0].$policyItems
+    foreach ($policyItem in $policyItems) {
+        if ($policyItem.frequencyType -eq $frequencyType) {
+            return $policyItem
+        }
+    }
+    Write-Host "Bad plan detected, missing frequencyType $($frequencyType). Offending plan: $($backupPlan)"
+}
+function EqualPolicyItem($newPolicyItem, $existingPolicyItem)
+{
+     if ($newPolicyItem.frequencyInterval -ne $existingPolicyItem.frequencyInterval) { return $false }
+     if ($newPolicyItem.retentionUnit -ne $existingPolicyItem.retentionUnit) { return $false }
+     if ($newPolicyItem.retentionValue -ne $existingPolicyItem.retentionValue) { return $false }
+     $true
+}
 
+function UpdatePolicy($command, $frequencyType, $newBackupPlan, $existingBackupPlan) {
+    $newPolicyItem = GetPolicyItem $frequencyType $newBackupPlan
+    $existingPolicyItem = GetPolicyItem $frequencyType $existingBackupPlan
+
+    if (EqualPolicyItem($newPolicyItem, $existingPolicyItem)) { return $command }
+
+    $existingPolicyId = $existingBackupPlan.policies[0].id
+    $command += " --policy $($existingPolicyId),$($existingPolicyItem.id),$($frequencyType),$($newPolicyItem.frequencyInterval),$($newPolicyItem.retentionUnit),$($newPolicyItem.retentionValue)"
+}
+
+function CreateBackupPlan($newBackupPlan) {
+    $existingBackupPlan = Invoke-AtlasCommand "backup schedule describe $(ClusterName)"
+    
+    $command = "backup schedule update --clusterName $(ClusterName)"
+    $originalState = $command
+    if ($newBackupPlan.referenceHourOfDay -ne $existingBackupPlan.referenceHourOfDay) {
+        $command += " --referenceHourOfDay $($newBackupPlan.referenceHourOfDay)"
+    }
+    if ($newBackupPlan.referenceMinuteOfHour -ne $existingBackupPlan.referenceMinuteOfHour) {
+        $command += " --referenceMinuteOfHour $($newBackupPlan.referenceMinuteOfHour)"
+    }
+    if ($newBackupPlan.restoreWindowDays -ne $existingBackupPlan.restoreWindowDays) {
+        $command += " --restoreWindowDays $($newBackupPlan.restoreWindowDays)"
+    }
+
+    foreach ($frequencyType in ("hourly", "daily", "weekly", "monthly"))
+    {
+        $command = UpdatePolicy $command $frequencyType $newBackupPlan $existingBackupPlan
+    }
+
+    if ($originalState -ne $command) {
+        Invoke-AtlasCommand $command
+    }
 }
 
 function CreateUser($userName, $password) {
@@ -229,7 +277,8 @@ Write-Host "Cluster created"
 
 if ($enableBackup) {
     Write-Host "Creating backup plan based on $(BackupPlanFilename)"
-    CreateBackupPlan BackupPlanFilename
+    $newBackupPlan = Get-Content -Raw "$(BackupPlanFilename)" | ConvertFrom-Json
+    CreateBackupPlan $newBackupPlan
     Write-Host "Backup plan created"
 }
 else {
