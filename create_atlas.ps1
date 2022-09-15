@@ -63,7 +63,7 @@ function ProjectName() {
 }
 
 function UserName() {
-    "svc_$($environment)_$($team)$($service)".ToLower()
+    "svc_$($environment)_$($team)$($service)user".ToLower()
 }
 
 function Password() {
@@ -108,6 +108,40 @@ function AlertsFilename() {
     "Alerts_$($environment).json"
 }
 
+function ProviderSpecificRegionName() {
+    switch ($provider.ToUpper()) {
+        "AWS" {
+            $region.ToLower().Replace("_", "-")
+        }
+        "AZURE" {
+            switch ($region.ToUpper()) {
+                "EUROPE_NORTH" { "northeurope" }
+                "EUROPE_WEST" { "westeurope" }
+                "UK_SOUTH" { "uksouth" }
+                "UK_WEST" { "ukwest" }
+                "FRANCE_CENTRAL" { "francecentral" }
+                "FRANCE_SOUTH" { "francesouth " }
+                "GERMANY_WEST_CENTRAL" { "germanywestcentral" }
+                "GERMANY_NORTH" { "germanynorth" }
+                "SWITZERLAND_NORTH" { "switzerlandnorth" }
+                "SWITZERLAND_WEST" { "switzerlandwest " }
+                "NORWAY_EAST" { "norwayeast" }
+                "NORWAY_WEST" { "norwaywest " }
+                "SWEDEN_CENTRAL" { "swedencentral" }
+                "SWEDEN_SOUTH" { "swedensouth " }
+                default {
+                    Write-Host "No known mapping for Atlas region $($region) to Azure region"
+                    Exit 1
+                }
+            }
+        }
+        default {
+            Write-Host "Cloud provider $($provider) is not yet supported in this script."
+            Exit 1
+        }
+    }
+}
+
 function CreateProject($projectName) {
     $result = Invoke-AtlasCommand "project create $(ProjectName) --withoutDefaultAlertSettings"
     $result.id
@@ -130,9 +164,30 @@ function CreateCluster($clusterName, $enableBackup) {
     }
 }
 
-function CreateUser($userName, $password)
-{
+function CreateUser($userName, $password) {
     $result = Invoke-AtlasCommand "dbuser create --username $($userName) --password ""$($password)"" --role $($role)"
+}
+
+function CreatePrivateEndpoint() {
+    $result = Invoke-AtlasCommand "privateEndpoint $($provider.ToLower()) create --region $(ProviderSpecificRegionName)"
+    $endpointId = $result.id
+    while ($result.status -eq "INITIATING") {
+        Write-Host "Waiting..."
+        Start-Sleep -Seconds 30
+        $result = Invoke-AtlasCommand "privateEndpoint $($provider.ToLower()) describe $($endpointId)"
+    }
+    if ($result.status -ne "AVAILABLE") {
+        Write-Host "Private endpoint reports status ""$($result.status)"", expected ""AVAILABLE"""
+    }
+
+    switch ($provider.ToUpper()) {
+        "AWS" { $result.endpointServiceName }
+        "AZURE" { $result.privateLinkServiceResourceId }
+        default {
+            Write-Host "Cloud provider $($provider) is not yet supported in this script."
+            Exit 1        
+        }
+    }
 }
 
 Write-Host "Creating project $(ProjectName)"
@@ -140,16 +195,14 @@ Write-Host "Creating project $(ProjectName)"
 $projectId = "6228b4a3311b6a2c9c48132e"
 Write-Host "Project $(ProjectName) created with ID $($projectId)"
 
+Write-Host "Creating alerts based on $(AlertsFilename)"
+#& "$PSScriptRoot\alerts_atlas.ps1 restore --fileName $(AlertsFilename) --publicKey qlrtbeas --privateKey 98895cc0-9894-4e21-96aa-53ca930cff94" 
+Write-Host "Alerts created"
+
 Write-Host "Creating cluster $(ClusterName) as $($tier), with $($provider) in region $($region)"
 $enableBackup = -not ("M0", "M2", "M5").Contains($tier)
-CreateCluster ClusterName $enableBackup
+#CreateCluster ClusterName $enableBackup
 Write-Host "Cluster created"
-
-$userName = UserName
-$password = Password
-Write-Host "Creating user $($userName) with password $($password)"
-CreateUser $userName $password
-Write-Host "User created"
 
 if ($enableBackup) {
     Write-Host "Creating backup plan based on $(BackupPlanFilename)"
@@ -157,13 +210,16 @@ if ($enableBackup) {
     Write-Host "Backup plan created"
 }
 else {
-    Write-Host "Skipping backup plan stage, since selected tier ($($tier)) does not support backups."
+    Write-Host "Skipping backup plan stage, since selected tier $($tier) does not support this."
 }
 
-Write-Host "Creating alerts based on $(AlertsFilename)"
-#& "$PSScriptRoot\alerts_atlas.ps1 restore --fileName $(AlertsFilename) --publicKey qlrtbeas --privateKey 98895cc0-9894-4e21-96aa-53ca930cff94" 
-Write-Host "Alerts created"
+$userName = UserName
+$password = Password
+$env:AtlasPassword = $password
+Write-Host "Creating user $($userName) with password $($password), password available in environment variable $env:AtlasPassword"
+#CreateUser $userName $password
+Write-Host "User created"
 
 Write-Host "Creating private endpoint connection"
-#CreatePrivateEndpoint
-Write-Host "Private endpoint created"
+$endpoint = CreatePrivateEndpoint
+Write-Host "Private endpoint created $($endpoint)"
