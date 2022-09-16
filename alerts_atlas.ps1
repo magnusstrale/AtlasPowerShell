@@ -16,7 +16,7 @@ has no obligation to support it.
 param(
     [ValidateSet("backup", "restore")]
     [string]$action = "backup",
-    [Parameter(Mandatory)][string]$fileName = "alerts.json",
+    [string]$fileName = "alerts.json",
     [string]$publicKey,
     [string]$privateKey,
     [string]$atlasProfile = "default",
