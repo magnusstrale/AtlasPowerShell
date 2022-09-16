@@ -111,16 +111,28 @@ function Password() {
     $password
 }
 
-function BackupPlanFilename() {
-    "BackupPlan_$($environment).json"
-}
-
 function AlertsFilename() {
     "Alerts_$($environment).json"
 }
 
+function BackupPlanFilename() {
+    "BackupPlan_$($environment).json"
+}
+
 function AuditLogConfigFilename() {
     "AuditLogConfig_$($environment).json"
+}
+
+function CreateAlerts($fileName) {
+    & "$PSScriptRoot\alerts_atlas.ps1" restore -fileName $($fileName) -publicKey $($publicKey) -privateKey $($privateKey) -atlasProfile $($atlasProfile) -projectId $($projectId)
+}
+
+function UpdateBackupPlan($fileName) {
+    & "$PSScriptRoot\backupplan_atlas.ps1" restore $(ClusterName) -fileName $($fileName) -atlasProfile $($atlasProfile) -projectId $($projectId)
+}
+
+function CreateAuditLogFilters($fileName) {
+    & "$PSScriptRoot\auditlog_atlas.ps1" restore -fileName $($fileName) -publicKey $($publicKey) -privateKey $($privateKey) -atlasProfile $($atlasProfile) -projectId $($projectId)
 }
 
 function ProviderSpecificRegionName() {
@@ -156,14 +168,6 @@ function ProviderSpecificRegionName() {
 function CreateProject($projectName) {
     $result = Invoke-AtlasCommand "project create $(ProjectName) --withoutDefaultAlertSettings"
     $result.id
-}
-
-function CreateAlerts($fileName) {
-    if (-not (Test-Path $fileName)) {
-        Write-Host "File $($fileName) is missing. Cannot create alerts."
-        Exit 1
-    }
-    & "$PSScriptRoot\alerts_atlas.ps1" restore -fileName $($fileName) -publicKey $($publicKey) -privateKey $($privateKey) -atlasProfile $($atlasProfile) -projectId $($projectId)
 }
 
 function MapAzureTierToDefaultDiskSize($tier) {
@@ -207,60 +211,6 @@ function CreateCluster($clusterName, $enableBackup) {
     }
 }
 
-function GetPolicyItem($frequencyType, $backupPlan) {
-    $policyItems = $backupPlan.policies[0].policyItems
-    foreach ($policyItem in $policyItems) {
-        if ($policyItem.frequencyType -eq $frequencyType) {
-            return $policyItem
-        }
-    }
-    Write-Host "Bad plan detected, missing frequencyType $($frequencyType). Offending plan: $($backupPlan)"
-}
-function EqualPolicyItem($newPolicyItem, $existingPolicyItem)
-{
-     if ($newPolicyItem.frequencyInterval -ne $existingPolicyItem.frequencyInterval) { return $false }
-     if ($newPolicyItem.retentionUnit -ne $existingPolicyItem.retentionUnit) { return $false }
-     if ($newPolicyItem.retentionValue -ne $existingPolicyItem.retentionValue) { return $false }
-     $true
-}
-
-function UpdatePolicy($command, $frequencyType, $newBackupPlan, $existingBackupPlan) {
-    $newPolicyItem = GetPolicyItem $frequencyType $newBackupPlan
-    $existingPolicyItem = GetPolicyItem $frequencyType $existingBackupPlan
-
-    if (EqualPolicyItem $newPolicyItem $existingPolicyItem) { return $command }
-
-    $existingPolicyId = $existingBackupPlan.policies[0].id
-    $command += " --policy $($existingPolicyId),$($existingPolicyItem.id),$($frequencyType),$($newPolicyItem.frequencyInterval),$($newPolicyItem.retentionUnit),$($newPolicyItem.retentionValue)"
-    $command
-}
-
-function UpdateBackupPlan($newBackupPlan) {
-    $existingBackupPlan = Invoke-AtlasCommand "backup schedule describe $(ClusterName)"
-    
-    $command = "backup schedule update --clusterName $(ClusterName)"
-    $originalState = $command
-    if ($newBackupPlan.referenceHourOfDay -ne $existingBackupPlan.referenceHourOfDay) {
-        $command += " --referenceHourOfDay $($newBackupPlan.referenceHourOfDay)"
-    }
-    if ($newBackupPlan.referenceMinuteOfHour -ne $existingBackupPlan.referenceMinuteOfHour) {
-        $command += " --referenceMinuteOfHour $($newBackupPlan.referenceMinuteOfHour)"
-    }
-    if ($newBackupPlan.restoreWindowDays -ne $existingBackupPlan.restoreWindowDays) {
-        $command += " --restoreWindowDays $($newBackupPlan.restoreWindowDays)"
-    }
-
-    foreach ($frequencyType in ("hourly", "daily", "weekly", "monthly"))
-    {
-        # BUGBUG - There seems to be issues with weekly frequencyInterval, it only accepts 1 (Monday) and 7 (Sunday) - https://jira.mongodb.org/browse/PRODTRIAGE-3228
-        $command = UpdatePolicy $command $frequencyType $newBackupPlan $existingBackupPlan
-    }
-
-    if ($originalState -ne $command) {
-        $result = Invoke-AtlasCommand $command
-    }
-}
-
 function CreateUser($userName, $password) {
     $result = Invoke-AtlasCommand "dbuser create --username $($userName) --password ""$($password)"" --role $($role)"
 }
@@ -283,15 +233,21 @@ function CreatePrivateEndpoint() {
     }
 }
 
-function CreateAuditLogFilters($fileName) {
-    if (-not (Test-Path $fileName)) {
-        Write-Host "File $($fileName) is missing. Cannot configure audit logs."
-        Exit 1
-    }
-    & "$PSScriptRoot\auditlog_atlas.ps1" restore -fileName $($fileName) -publicKey $($publicKey) -privateKey $($privateKey) -atlasProfile $($atlasProfile) -projectId $($projectId)
+# Up-front validation of required files here, check that alerts, audit config and backup plan files exist
+if (-not (Test-Path AuditLogConfigFilename)) {
+    Write-Host "File $(AuditLogConfigFilename) is missing. Cannot configure audit logs."
+    Exit 1
 }
 
-# TODO - Do some up-front validation of input here, check that alerts and backup plan files exist
+if (-not (Test-Path BackupPlanFilename)) {
+    Write-Host "File $(BackupPlanFilename) is missing. Cannot configure backup plan."
+    Exit 1
+}
+
+if (-not (Test-Path AlertsFilename)) {
+    Write-Host "File $(AlertsFilename) is missing. Cannot configure alerts."
+    Exit 1
+}
 
 Write-Host "Creating project $(ProjectName)"
 #$projectId = CreateProject ProjectName
@@ -314,8 +270,7 @@ Write-Host "Cluster created"
 
 if ($enableBackup) {
     Write-Host "Updating backup plan based on $(BackupPlanFilename)"
-    $newBackupPlan = Get-Content -Raw "$(BackupPlanFilename)" | ConvertFrom-Json
-    UpdateBackupPlan $newBackupPlan
+    UpdateBackupPlan BackupPlanFilename
     Write-Host "Backup plan updated"
 }
 else {
