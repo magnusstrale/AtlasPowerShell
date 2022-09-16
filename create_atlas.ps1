@@ -25,12 +25,13 @@ param(
     [string]$region = "UK_SOUTH", # change to "UK_SOUTH" as default for StoneX?
     [ValidateSet("AZURE", "AWS", IgnoreCase=$false)]
     [string]$provider = "AZURE",
-    [ValidateSet(8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4095)]
+    [ValidateSet(8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096)]
     [int]$diskSizeGB,
     [ValidateSet("4.2", "4.4", "5.0", "6.0")]
-    [string]$mdbVersion = "5.0", # Version of MongoDB to create
-    [string]$role = "readWriteAnyDatabase@admin", # Default role for the created user
-    [string]$atlasProfile = "default"
+    [string]$mdbVersion = "5.0",                    # Version of MongoDB to create
+    [string]$role = "readWriteAnyDatabase@admin",   # Default role for the created user
+    [string]$atlasProfile = "default",
+    [bool]$debug = $false                           # If true, will display the atlas CLI commands that are executed
 )
 
 Import-Module -Name Microsoft.PowerShell.Utility
@@ -45,7 +46,9 @@ function Invoke-AtlasCommand([string]$command) {
     if ($projectId) {
         $fullCommand += " --projectId " + $projectId
     }
-    Write-Host $fullCommand
+    if ($debug) {
+        Write-Host $fullCommand
+    }
     $fullCommand | Invoke-Expression | ConvertFrom-Json
 }
 
@@ -57,7 +60,9 @@ function Invoke-SilentAtlasCommand([string]$command) {
     if ($projectId) {
         $fullCommand += " --projectId " + $projectId
     }
-    Write-Host $fullCommand
+    if ($debug) {
+        Write-Host $fullCommand
+    }
     $fullCommand | Invoke-Expression
 }
 
