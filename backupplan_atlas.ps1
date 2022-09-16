@@ -15,9 +15,9 @@ has no obligation to support it.
 param(
     [ValidateSet("backup", "restore")]
     [string]$action = "restore",
-    [Parameter(Mandatory)] [string]$clusterName = "Cluster1",
+    [Parameter(Mandatory)] [string]$clusterName,
     [string]$fileName = "BackupPlan.json",
-    [string]$atlasProfile = "landet",
+    [string]$atlasProfile = "default",
     [string]$projectName,
     [string]$projectId
 )
