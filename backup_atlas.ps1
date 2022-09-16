@@ -45,6 +45,17 @@ function Invoke-AtlasCommand([string]$command) {
     }
 }
 
+function FindProjectIdFor($projectName) {
+    $projects = Invoke-AtlasCommand "project list"
+    foreach ($project in $projects) {
+        if ($project.name.ToLower() -eq $projectName.ToLower()) {
+            return $project.id
+        }
+    }
+    Write-Host "Cannot find a project with name ""$($projectName)"""
+    Exit 1
+}
+
 function ListSnapshots() {
     Invoke-AtlasCommand "backups snapshots list $($clusterName)"
 }
@@ -67,6 +78,10 @@ function CreateRestoreOperation() {
 
 function DescribeRestoreOperation([string]$restoreId) {
     Invoke-AtlasCommand "backups restore describe $($restoreId) --clusterName $($clusterName)"
+}
+
+if ($projectName) {
+    $projectId = FindProjectIdFor $projectName
 }
 
 Write-Host "Check for backup snapshot in progress"
