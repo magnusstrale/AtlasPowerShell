@@ -14,12 +14,13 @@ has no obligation to support it.
 
 # Parameter help description
 param(
-    [string]$action = "backup", # Can be backup, restore or apply
-    [string]$fileName = "alerts.json",
-    [bool]$deleteUntouched = $false,
+    [ValidateSet("backup", "restore")]
+    [string]$action = "backup",
+    [Parameter(Mandatory)][string]$fileName = "alerts.json",
     [string]$publicKey,
     [string]$privateKey,
     [string]$atlasProfile = "default",
+    [string]$projectName,
     [string]$projectId
 )
 
@@ -47,6 +48,18 @@ function Invoke-SilentAtlasCommand([string]$command) {
     $fullCommand | Invoke-Expression
 }
 
+function FindProjectIdFor($projectName) {
+    $result = Invoke-AtlasCommand "project list"
+    $projects = $result.results
+    foreach ($project in $projects) {
+        if ($project.name.ToLower() -eq $projectName.ToLower()) {
+            return $project.id
+        }
+    }
+    Write-Host "Cannot find a project with name ""$($projectName)"""
+    Exit 1
+}
+
 function ApplyPropertiesToCommand($command, $props) {
     foreach ($prop in $props.psobject.Properties) {
         $command += " --" + $prop.Name
@@ -62,33 +75,6 @@ function CreateAlert($alert) {
     Write-Host "Creating alert of type $($alert.event)"
     $result = Invoke-AtlasCommand $command
     $result.id
-}
-
-function UpdateAlerts($alert) {
-    Write-Host "The update functionality is currently not fully functional."
-    # $eventTypesToUpdate = $alert.event
-    # if (!($eventTypesToUpdate)) {
-    #     Write-Host "alertOperation update requires that field event is set, either to * for update all alerts, or to a specific event type."
-    #     Exit 1
-    # }
-
-    # Write-Host "Updating alerts of type $eventTypesToUpdate"
-    # $updatedAlertIds = @()
-    # $existingAlerts = Invoke-AtlasCommand ("alert settings list")
-    # foreach ($existingAlert in $existingAlerts) {
-    #     # If wildcard, update all alerts otherwise just the ones with matching event type
-    #     if (($eventTypesToUpdate -eq "*") -or ($eventTypesToUpdate -eq $existingAlert.eventTypeName)) {
-    #         if ($eventTypesToUpdate -eq "*")
-    #         {
-    #             # event is a required attribute, set it for wildcard changes
-    #             $alert.event = $existingAlert.eventTypeName
-    #         }
-    #         $command = ApplyPropertiesToCommand "alert settings update $($existingAlert.id)" $alert
-    #         Invoke-AtlasCommand $command
-    #         $updatedAlertIds += $existingAlert.id
-    #     }
-    # }
-    # $updatedAlertIds
 }
 
 function BackupAlerts() {
@@ -152,6 +138,10 @@ function DeleteUntouchedAlerts($touchedAlertIds) {
     }
 }
 
+if ($projectName) {
+    $projectId = FindProjectIdFor $projectName
+}
+
 Switch ($action) {
     "backup" {
         BackupAlerts
@@ -161,22 +151,5 @@ Switch ($action) {
         $createdAlertIds = RestoreAlerts $alerts
         DeleteUntouchedAlerts $createdAlertIds
     }
-    "apply" {
-        $alerts = Get-Content -Raw $fileName | ConvertFrom-Json 
-        $touchedAlertIds = @()
-        foreach ($alertOperation in $alerts) {
-            $operation = $alertOperation.alertOperation
-            $alertOperation.psobject.Properties.Remove("alertOperation")
-            Switch ($operation) {
-                "create" { $touchedAlertIds += CreateAlert $alertOperation }
-                "update" { $touchedAlertIds += UpdateAlerts $alertOperation }
-            }
-        }
-        
-        if ($deleteUntouched) {
-            DeleteUntouchedAlerts $touchedAlertIds
-        }
-    }
-    default { Write-Host "Unknown action ""$action"". Accepted values are backup | restore | apply" }
 }
 
