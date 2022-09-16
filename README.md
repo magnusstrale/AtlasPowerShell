@@ -2,10 +2,36 @@
 Powershell scripts for administering Atlas
 
 ## Prerequisites
-Atlas CLI
-API keys
-Atlas profile
-Access to API keys for alert restore and backup/restore of audit log configuration.
+
+The following prerequisites needs to be fulfilled for these scripts to run correctly:
+
+- Atlas CLI should be installed. At least version 1.1.7. It can be downloaded from here https://www.mongodb.com/docs/atlas/cli/stable/install-atlas-cli/
+- Windows Powershell version 5.1 or later **or** Powershell Core 7.0 or later. The version of Powershell can be checked with the command "$PSVersionTable.PSVersion" from a Powershell command prompt.
+- Windows Powershell ISE is the recommended environment for running these scripts since it will give you parameter completion etc.
+- A set of Atlas API keys that gives you access to the desired Atlas environment. In order to run the create_atlas.ps1 script you need a set of organization level keys that has the group creator role in the organization, otherwise the script will not be able to create a new project.
+
+All scripts should be placed in the same folder.
+
+## General notes
+
+Even if Windows as an operating system usually does not care about exact casing for file names, this does not apply when running Powershell. All file names, both scripts as well as config / json files needs to use the exact casing as described in this document.
+
+The parameters to the scripts can be displayed by running the Get-Help commandlet in Powershell. For example to describe the parameters for the alerts_atlas.ps1 script:
+
+    Get-Help .\alerts_atlas.ps1
+
+This will show you the following:
+
+    alerts_atlas.ps1 [[-action] &lt;string&gt;] [[-fileName] &lt;string&gt;] [[-publicKey] &lt;string&gt;] [[-privateKey] &lt;string&gt;] [[-atlasProfile] &lt;string&gt;] [[-projectName] &lt;string&gt;] [[-projectId] &lt;string&gt;]
+
+The information about parameters are described in this document, but Get-Help may still be convenient to use.
+
+The script descriptions in this document are showing that the parameter names are required, which is the recommended usage, but as implied by the description from Get-Help above, the actual names are optional and in that case the position of the value determines which parameter is defined by that value. For example, these two commands are equivalent:
+
+    .\alerts_atlas.ps1 backup Alerts_uat.json -atlasProfile Demo
+
+    .\alerts_atlas.ps1 -action backup -fileName Alerts_uat.json -atlasProfile Demo
+
 
 ## Downloading backup snapshots with backup_atlas.ps1
 
@@ -13,7 +39,7 @@ Create a snapshot and download it to the machine where this script is executed.
 
 **Synopsis**
 
-.\backup_atlas.ps1 -clusterName <string> -description <string> [[-atlasProfile] <string>] [[-projectName] <string>] [[-projectId] <string>] [<CommonParameters>]
+.\backup_atlas.ps1 -clusterName &lt;string&gt; -description &lt;string&gt; [-atlasProfile &lt;string&gt;] [-projectName &lt;string&gt;] [-projectId &lt;string&gt;]
 
 | Parameter     | Description
 | ---------     | ----------- 
@@ -23,9 +49,42 @@ Create a snapshot and download it to the machine where this script is executed.
 | -projectId    | The ID of the project that contains the cluster to backup. Overrides information in profile. (default is value from Atlas CLI profile)
 | -projectName  | The name of the project that contains the cluster to backup. Overrides value for -profileId if both given.
 
-## Manage project alers with alerts_atlas.ps1
+## Manage project alerts with alerts_atlas.ps1
 
-## Manage backup policy with backupplan.ps1
+Create a backup or restore project alert settings for a project. The information is stored in a JSON file and can be manipulated with a text editor, but it is recommended to define the desired set of alerts with the Atlas UI and simply create a backup with this script.
+
+**Synopsis**
+.\alerts_atlas.ps1 [-action &lt;string&gt;] [-fileName &lt;string&gt;] [-publicKey &lt;string&gt;] [-privateKey &lt;string&gt;] [-atlasProfile &lt;string&gt;] [-projectName &lt;string&gt;] [-projectId &lt;string&gt;]
+
+| Parameter     | Description
+| ---------     | ----------- 
+| -action       | The action to perform. Can be backup or restore. (default backup)
+| -fileName     | Name of file to use. If action is backup, the file is created. If action is restore the configuration is read from this file (default alerts.json)
+| -publicKey    | The public part of the API key used to access Atlas. Only required when action is restore. 
+| -privateKey   | The private part of the API key used to access Atlas. Only required when action is restore.
+| -atlasProfile | The profile to use for for Atlas CLI commands. (default is default Atlas CLI profile)
+| -projectId    | The ID of the project to use. Overrides information in profile. (default is value from Atlas CLI profile)
+| -projectName  | The name of the project to use. Overrides value for -profileId if both given.
+
+
+## Manage backup policy with backupplan_atlas.ps1
+
+Create a backup or restore backup plan settings for a cluster. The information is stored in a JSON file and can be manipulated with a text editor, but it is recommended to define the desired backup plan with the Atlas UI and simply create a backup with this script.
+
+**Synopsis**
+
+.\backupplan.ps1 [-action &lt;string&gt;] -clusterName &lt;string&gt; [-fileName &lt;string&gt;] [-atlasProfile &lt;string&gt;] [-projectName &lt;string&gt;] [-projectId &lt;string&gt;]
+
+| Parameter     | Description
+| ---------     | ----------- 
+| -action       | The action to perform. Can be backup or restore. (default backup)
+| -clusterName  | Name of cluster to use. If action is backup, the existing backup plan for that cluster is saved. If action is restore the backup plan for that cluster is modified according to the configuration file.
+| -fileName     | Name of file to use. If action is backup, the file is created. If action is restore the configuration is read from this file (default BackupPlan.json)
+| -atlasProfile | The profile to use for for Atlas CLI commands. (default is default Atlas CLI profile)
+| -projectId    | The ID of the project to use. Overrides information in profile. (default is value from Atlas CLI profile)
+| -projectName  | The name of the project to use. Overrides value for -profileId if both given.
+
+## Manage audit log configuration with auditlog_atlas.ps1
 
 ## Create Atlas setup for a team / application / environment
 First ensure you have the necessary config files for the intended environment. You need:
