@@ -107,7 +107,7 @@ function RestoreBackupPlan($newBackupPlan) {
 
 function BackupBackupPlan($fileName) {
     if (Test-Path $fileName) {
-        Write-Host "File $($fileName) already exists. Give a different backup file name with parameter -fileName <name of backup file>"
+        Write-Host "File $($fileName) already exists. Give a different backup file name."
         Exit 1
     }
     $result = Invoke-AtlasCommand "backup schedule describe $($clusterName)"

@@ -79,7 +79,7 @@ function CreateAlert($alert) {
 
 function BackupAlerts() {
     if (Test-Path $fileName) {
-        Write-Host "File $($fileName) already exists. Give a different backup file name with parameter -fileName <name of backup file>"
+        Write-Host "File $($fileName) already exists. Give a different backup file name."
         Exit 1
     }
     $result = Invoke-AtlasCommand ("alert settings list")
