@@ -29,8 +29,8 @@ param(
     [ValidateSet("4.2", "4.4", "5.0", "6.0")]
     [string]$mdbVersion = "5.0",                    # Version of MongoDB to create
     [string]$role = "readWriteAnyDatabase@admin",   # Default role for the created user
-    [string]$atlasProfile = "default",
-    [bool]$debug = $false                           # If true, will display the atlas CLI commands that are executed
+    [string]$atlasProfile = "default"
+    #[bool]$debug = $false                           # If true, will display the atlas CLI commands that are executed
 )
 
 Import-Module -Name Microsoft.PowerShell.Utility
@@ -234,24 +234,21 @@ function CreatePrivateEndpoint() {
 }
 
 # Up-front validation of required files here, check that alerts, audit config and backup plan files exist
-if (-not (Test-Path AuditLogConfigFilename)) {
+if (-not (Test-Path $(AuditLogConfigFilename))) {
     Write-Host "File $(AuditLogConfigFilename) is missing. Cannot configure audit logs."
     Exit 1
 }
-
-if (-not (Test-Path BackupPlanFilename)) {
+if (-not (Test-Path $(BackupPlanFilename))) {
     Write-Host "File $(BackupPlanFilename) is missing. Cannot configure backup plan."
     Exit 1
 }
-
-if (-not (Test-Path AlertsFilename)) {
+if (-not (Test-Path $(AlertsFilename))) {
     Write-Host "File $(AlertsFilename) is missing. Cannot configure alerts."
     Exit 1
 }
 
 Write-Host "Creating project $(ProjectName)"
-#$projectId = CreateProject ProjectName
-$projectId = "6228b4a3311b6a2c9c48132e"
+$projectId = CreateProject ProjectName
 Write-Host "Project $(ProjectName) created with ID $($projectId)"
 
 $alertsFilename = AlertsFilename
@@ -270,7 +267,7 @@ Write-Host "Cluster created"
 
 if ($enableBackup) {
     Write-Host "Updating backup plan based on $(BackupPlanFilename)"
-    UpdateBackupPlan BackupPlanFilename
+    UpdateBackupPlan $(BackupPlanFilename)
     Write-Host "Backup plan updated"
 }
 else {
