@@ -12,21 +12,20 @@ has no obligation to support it.
 
 #>
 
-# Parameter help description
-# TODO - StoneX to review and update default values
+
 param(
     [Parameter(Mandatory)] [string]$team,
     [Parameter(Mandatory)] [string]$service,
     [Parameter(Mandatory)] [string]$environment,
-    [string]$publicKey,
-    [string]$privateKey,
+    [Parameter(Mandatory)] [string]$publicKey,
+    [Parameter(Mandatory)] [string]$privateKey,
     [ValidateSet("M0", "M2", "M5", "M10", "M20", "M30", "M40", "M50", "M60", "M80", "M140", "M200", "M300", "M400", "M700", IgnoreCase=$false)]
-    [string]$tier = "M10", # change to ?
-    [string]$region = "UK_SOUTH", # change to "UK_SOUTH" as default for StoneX?
+    [string]$tier = "M10",                          # Size of cluster to create
+    [string]$region = "UK_SOUTH",                   # Atlas region where to create cluster. Note that the name differs from cloud provider names!
     [ValidateSet("AZURE", "AWS", IgnoreCase=$false)]
-    [string]$provider = "AZURE",
+    [string]$provider = "AZURE",                    # Cloud provider to use, note that GCP is not supported
     [ValidateSet(8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096)]
-    [int]$diskSizeGB,
+    [int]$diskSizeGB,                               # Requested size of disk
     [ValidateSet("4.2", "4.4", "5.0", "6.0")]
     [string]$mdbVersion = "5.0",                    # Version of MongoDB to create
     [string]$role = "readWriteAnyDatabase@admin",   # Default role for the created user
@@ -120,8 +119,8 @@ function AlertsFilename() {
     "Alerts_$($environment).json"
 }
 
-function AuditLogFilterFilename() {
-    "AuditLogFilter_$($environment).json"
+function AuditLogConfigFilename() {
+    "AuditLogConfig_$($environment).json"
 }
 
 function ProviderSpecificRegionName() {
@@ -164,7 +163,7 @@ function CreateAlerts($fileName) {
         Write-Host "File $($fileName) is missing. Cannot create alerts."
         Exit 1
     }
-    & "$PSScriptRoot\alerts_atlas.ps1" restore -fileName $($fileName) -publicKey $($publicKey) -privateKey $($privateKey) -atlasProfile $($atlasProfile)
+    & "$PSScriptRoot\alerts_atlas.ps1" restore -fileName $($fileName) -publicKey $($publicKey) -privateKey $($privateKey) -atlasProfile $($atlasProfile) -projectId $($projectId)
 }
 
 function MapAzureTierToDefaultDiskSize($tier) {
@@ -284,19 +283,23 @@ function CreatePrivateEndpoint() {
     }
 }
 
-function CreateAuditLogFilters() {
-
+function CreateAuditLogFilters($fileName) {
+    if (-not (Test-Path $fileName)) {
+        Write-Host "File $($fileName) is missing. Cannot configure audit logs."
+        Exit 1
+    }
+    & "$PSScriptRoot\auditlog_atlas.ps1" restore -fileName $($fileName) -publicKey $($publicKey) -privateKey $($privateKey) -atlasProfile $($atlasProfile) -projectId $($projectId)
 }
 
 # TODO - Do some up-front validation of input here, check that alerts and backup plan files exist
 
 Write-Host "Creating project $(ProjectName)"
 #$projectId = CreateProject ProjectName
-$projectId = "6322e1a4c7b0e32b2c36d68f" # "6228b4a3311b6a2c9c48132e"
+$projectId = "6228b4a3311b6a2c9c48132e"
 Write-Host "Project $(ProjectName) created with ID $($projectId)"
 
 $alertsFilename = AlertsFilename
-Write-Host "Creating alerts based on $($alertsFilename)"
+Write-Host "Creating alerts from $($alertsFilename)"
 CreateAlerts $alertsFilename
 Write-Host "Alerts created"
 
@@ -330,6 +333,7 @@ Write-Host "Creating private endpoint connection"
 $endpoint = CreatePrivateEndpoint
 Write-Host "Private endpoint created $($endpoint)"
 
-Write-Host "Creating audit log filters"
-#CreateAuditLogFilters AuditLogFilterFilename
+$auditLogFilename = AuditLogConfigFilename
+Write-Host "Creating audit log filters from $($auditLogFilename)"
+CreateAuditLogFilters $auditLogFilename
 Write-Host "Audit log filters created"
