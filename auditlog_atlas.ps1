@@ -74,23 +74,26 @@ function BackupAuditConfiguration($fileName) {
         -Credential $cred `
         -Headers @{"accept" = "application/json" } `
         -ContentType "application/json" `
-        -Uri $baseUrl | Select-Object -ExpandProperty Content | ConvertFrom-Json
+        -Uri $baseUrl | Select-Object -ExpandProperty Content
 
-    $result | ConvertTo-Json -Depth 10 | Set-Content -Path $fileName
+    $result | Set-Content -Path $fileName
 }
 
 function RestoreAuditConfiguration($config) {
+    # Remove extra parameter that gets returned by the backup process
+    $config.psobject.Properties.Remove("configurationType")
 
     $baseUrl = "https://cloud.mongodb.com/api/atlas/v1.0/groups/$(GetProjectId)/auditLog"
     $securePassword = ConvertTo-SecureString $privateKey -AsPlainText -Force
     $cred = New-Object System.Management.Automation.PSCredential($publicKey, $securePassword)
 
+    $body = ($config | ConvertTo-Json -Depth 10)
     $result = Invoke-WebRequest `
-        -Method Post `
+        -Method Patch `
         -Credential $cred `
         -Headers @{"accept" = "application/json" } `
         -ContentType "application/json" `
-        -Body $config `
+        -Body $body `
         -Uri $baseUrl | Select-Object -ExpandProperty Content | ConvertFrom-Json
 }
 
@@ -103,7 +106,7 @@ Switch ($action) {
         BackupAuditConfiguration $fileName
     }
     "restore" {
-        $config = Get-Content -Raw $fileName
+        $config = Get-Content -Raw $fileName | ConvertFrom-Json
         RestoreAuditConfiguration $config
     }
 }
