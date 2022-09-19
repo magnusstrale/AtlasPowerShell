@@ -1,5 +1,5 @@
 # AtlasPowerShell
-Powershell scripts for administering Atlas
+Powershell scripts for administering various MongoDB Atlas settings.
 
 ## Prerequisites
 
@@ -31,7 +31,6 @@ The script descriptions in this document are showing that the parameter names ar
     .\alerts_atlas.ps1 backup Alerts_uat.json -atlasProfile Demo
 
     .\alerts_atlas.ps1 -action backup -fileName Alerts_uat.json -atlasProfile Demo
-
 
 ## Downloading backup snapshots with backup_atlas.ps1
 
@@ -66,14 +65,13 @@ Create a backup or restore project alert settings for a project. The information
 | -projectId    | The ID of the project to use. Overrides information in profile. (default is value from Atlas CLI profile)
 | -projectName  | The name of the project to use. Overrides value for -profileId if both given.
 
-
 ## Manage backup policy with backupplan_atlas.ps1
 
-Create a backup or restore backup plan settings for a cluster. The information is stored in a JSON file and can be manipulated with a text editor, but it is recommended to define the desired backup plan with the Atlas UI and simply create a backup with this script.
+Create a backup of backup plan settings or restore backup plan settings for a cluster. The information is stored in a JSON file and can be manipulated with a text editor, but it is recommended to define the desired backup plan with the Atlas UI and simply create a backup with this script.
 
 **Synopsis**
 
-.\backupplan.ps1 [-action &lt;string&gt;] -clusterName &lt;string&gt; [-fileName &lt;string&gt;] [-atlasProfile &lt;string&gt;] [-projectName &lt;string&gt;] [-projectId &lt;string&gt;]
+.\backupplan.ps1 -action &lt;string&gt; -clusterName &lt;string&gt; [-fileName &lt;string&gt;] [-atlasProfile &lt;string&gt;] [-projectName &lt;string&gt;] [-projectId &lt;string&gt;]
 
 | Parameter     | Description
 | ---------     | ----------- 
@@ -86,30 +84,49 @@ Create a backup or restore backup plan settings for a cluster. The information i
 
 ## Manage audit log configuration with auditlog_atlas.ps1
 
+Create a backup or restore the audit log settings for an Atlas project. The information is stored in a JSON file and can be manipulated with a text editor, but it is recommended to define the desired backup plan with the Atlas UI and simply create a backup with this script.
+
+**Synopsis**
+
+auditlog_atlas.ps1 [-action] &lt;string&gt; [-fileName] &lt;string&gt; [-publicKey] &lt;string&gt; [-privateKey] &lt;string&gt; [-atlasProfile &lt;string&gt;] [-projectName &lt;string&gt;] [-projectId &lt;string&gt;]
+
+| Parameter     | Description
+| ---------     | ----------- 
+| -action       | The action to perform. Can be backup or restore. (default backup)
+| -fileName     | Name of file to use. If action is backup, the file is created. If action is restore the configuration is read from this file (default BackupPlan.json)
+| -atlasProfile | The profile to use for for Atlas CLI commands. (default is default Atlas CLI profile)
+| -projectId    | The ID of the project to use. Overrides information in profile. (default is value from Atlas CLI profile)
+| -projectName  | The name of the project to use. Overrides value for -profileId if both given.
+
 ## Create Atlas setup for a team / application / environment
+
 First ensure you have the necessary config files for the intended environment. You need:
 - Alerts_[environment].json
 - BackupPlan_[environment].json
 - AuditLogConfig_[environment].json
 
 ### Create Alerts.json
+
 Run the script alerts_atlas.ps1 with the backup option and output to a file with the correct name based on the environment. For example to create an alerts config file from project GC-PAY-PROD to be used as a template for setting up Atlas in UAT environment (note that alerts are defined on projects), run the following command:
 
-    ./alerts_atlas.ps1 backup -projectName GC-PAY-PROD -fileName Alerts_UAT.json
+    .\alerts_atlas.ps1 backup -projectName GC-PAY-PROD -fileName Alerts_UAT.json
 
 ### Create BackupPlan.json
+
 Run the script backupplan_atlas.ps1 with the backup option and output to a file with the correct name based on the environment. For example to create a backup plan config file from project GCPAYPROD, cluster GC-PAY-PROD (note that backup plan is defined on cluster) to be used as a template for setting up Atlas in UAT environment, run the following command:
 
-    ./backupplan_atlas.ps1 backup -projectName GC-PAY-PROD -clusterName GCPAYPROD -fileName BackupPlan_UAT.json
+    .\backupplan_atlas.ps1 backup -projectName GC-PAY-PROD -clusterName GCPAYPROD -fileName BackupPlan_UAT.json
 
 ### Create AuditLogConfig.json
+
 Run the script auditlog_atlas.ps1 with the backup option and output to a file with the correct name based on the environment. Accessing the audit log configuration requires the script to use the API keys.
 
 For example to create an audit log config file from project GCPAYPROD (note that auditing configuration is defined on projects) to be used as a template for setting up Atlas in UAT environment, run the following command:
 
-    ./auditlog_atlas.ps1 backup -projectName GC-PAY-PROD -fileName AuditLogConfig_UAT.json -publicKey ljewcykn -privateKey b4806a90-76d0-41d9-a5ff-22cb58d7e14f
+    .\auditlog_atlas.ps1 backup -projectName GC-PAY-PROD -fileName AuditLogConfig_UAT.json -publicKey ljewcykn -privateKey b4806a90-76d0-41d9-a5ff-22cb58d7e14f
 
 ### Create Atlas setup
+
 The script create_atlas.ps1 will create an entire Atlas environment for you, based on parameters on the command line as well as configuration files with associated data. The process will set up the following:
 - A new project
 - Alerts in that project according to config file
@@ -140,7 +157,7 @@ The script create_atlas.ps1 will create an entire Atlas environment for you, bas
 
 The -team, -service and -environment parameters will be used for naming various artifacts in the setup process. Assuming we have the following command line:
 
-    ./create_atlas.ps1 -team GC -service APP -environment UAT -publicKey ljewcykn -privateKey b4806a90-76d0-41d9-a5ff-22cb58d7e14f
+    .\create_atlas.ps1 -team GC -service APP -environment UAT -publicKey ljewcykn -privateKey b4806a90-76d0-41d9-a5ff-22cb58d7e14f
 
 - Project name will be GC-APP-UAT
 - Cluster name will be GCAPPUAT
@@ -157,10 +174,11 @@ The -environment name will also be used to determine which configuration files t
 **Note that the file names are case sensitive**
 
 ### Usage Examples
+
 Creates a new setup in AZURE, region UK_SOUTH with a M10 cluster for UAT environment. Profile information in the Atlas CLI profile Demo will be used. Note! Ensure that the API keys registered in the selected profile matches the API keys given on the command line.
 
-    ./create_atlas.ps1 -team GC -service APP -environment UAT -publicKey ljewcykn -privateKey b4806a90-76d0-41d9-a5ff-22cb58d7e14f -atlasProfile Demo
+    .\create_atlas.ps1 -team GC -service APP -environment UAT -publicKey ljewcykn -privateKey b4806a90-76d0-41d9-a5ff-22cb58d7e14f -atlasProfile Demo
 
 Creates a new setup in AWS, region EU_NORTH_1 with a M30 cluster for prod environment. Profile information in the Atlas CLI profile Production will be used
 
-    ./create_atlas.ps1 -team GC -service APP -environment UAT -publicKey abacggfd -privateKey b4806a90-9999-41d9-a5ff-22cb9872124f -atlasProfile Production -provider AWS -region EU_NORTH_1 -tier M30
+    .\create_atlas.ps1 -team GC -service APP -environment UAT -publicKey abacggfd -privateKey b4806a90-9999-41d9-a5ff-22cb9872124f -atlasProfile Production -provider AWS -region EU_NORTH_1 -tier M30
