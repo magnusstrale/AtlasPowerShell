@@ -1,0 +1,45 @@
+{
+  "clusterId": "632423b47216e019786e47ab",
+  "clusterName": "Cluster1",
+  "referenceHourOfDay": 7,
+  "referenceMinuteOfHour": 26,
+  "restoreWindowDays": 7,
+  "nextSnapshot": "2022-09-16T13:26:44Z",
+  "policies": [
+    {
+      "id": "63242533d4adb54a783bdb19",
+      "policyItems": [
+        {
+          "id": "63242533d4adb54a783bdb1a",
+          "frequencyInterval": 6,
+          "frequencyType": "hourly",
+          "retentionUnit": "days",
+          "retentionValue": 7
+        },
+        {
+          "id": "63242533d4adb54a783bdb1b",
+          "frequencyInterval": 1,
+          "frequencyType": "daily",
+          "retentionUnit": "days",
+          "retentionValue": 7
+        },
+        {
+          "id": "63242533d4adb54a783bdb1c",
+          "frequencyInterval": 7,
+          "frequencyType": "weekly",
+          "retentionUnit": "weeks",
+          "retentionValue": 4
+        },
+        {
+          "id": "63242533d4adb54a783bdb1d",
+          "frequencyInterval": 40,
+          "frequencyType": "monthly",
+          "retentionUnit": "months",
+          "retentionValue": 12
+        }
+      ]
+    }
+  ],
+  "autoExportEnabled": false,
+  "useOrgAndGroupNamesInExportPrefix": false
+}

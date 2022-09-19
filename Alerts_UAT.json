@@ -1,0 +1,761 @@
+[
+  {
+    "id": "632320f74ee99f3187e040be",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "REPLICATION_OPLOG_WINDOW_RUNNING_OUT",
+    "created": "2022-09-15T12:56:23Z",
+    "updated": "2022-09-15T12:56:23Z",
+    "enabled": true,
+    "threshold": {
+      "operator": "LESS_THAN",
+      "units": "HOURS",
+      "threshold": 1
+    },
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320f7cbc38855e067f6f0",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "OUTSIDE_METRIC_THRESHOLD",
+    "created": "2022-09-15T12:56:23Z",
+    "updated": "2022-09-15T12:56:23Z",
+    "enabled": true,
+    "metricThreshold": {
+      "metricName": "CONNECTIONS_PERCENT",
+      "operator": "GREATER_THAN",
+      "threshold": 80,
+      "units": "RAW",
+      "mode": "AVERAGE"
+    },
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320f83e3b627a4844c8fa",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "NO_PRIMARY",
+    "created": "2022-09-15T12:56:24Z",
+    "updated": "2022-09-15T12:56:24Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 15,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320f84728e07242307abc",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "OUTSIDE_METRIC_THRESHOLD",
+    "created": "2022-09-15T12:56:24Z",
+    "updated": "2022-09-15T12:56:24Z",
+    "enabled": true,
+    "metricThreshold": {
+      "metricName": "DISK_PARTITION_SPACE_USED_DATA",
+      "operator": "GREATER_THAN",
+      "threshold": 90,
+      "units": "RAW",
+      "mode": "AVERAGE"
+    },
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320f9206f75031db1c6af",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "CREDIT_CARD_ABOUT_TO_EXPIRE",
+    "created": "2022-09-15T12:56:25Z",
+    "updated": "2022-09-15T12:56:25Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 1440,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320f96f89cf39d8c51b6f",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "CLUSTER_MONGOS_IS_MISSING",
+    "created": "2022-09-15T12:56:25Z",
+    "updated": "2022-09-15T12:56:25Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 15,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320fa2febff2871ad0b72",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "OUTSIDE_METRIC_THRESHOLD",
+    "created": "2022-09-15T12:56:26Z",
+    "updated": "2022-09-15T12:56:26Z",
+    "enabled": true,
+    "metricThreshold": {
+      "metricName": "NORMALIZED_SYSTEM_CPU_USER",
+      "operator": "GREATER_THAN",
+      "threshold": 95,
+      "units": "RAW",
+      "mode": "AVERAGE"
+    },
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320fa873b78434d2dac6f",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "OUTSIDE_METRIC_THRESHOLD",
+    "created": "2022-09-15T12:56:26Z",
+    "updated": "2022-09-15T12:56:26Z",
+    "enabled": true,
+    "metricThreshold": {
+      "metricName": "QUERY_TARGETING_SCANNED_OBJECTS_PER_RETURNED",
+      "operator": "GREATER_THAN",
+      "threshold": 1000,
+      "units": "RAW",
+      "mode": "AVERAGE"
+    },
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320fb31513d47f8941e71",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "HOST_HAS_INDEX_SUGGESTIONS",
+    "created": "2022-09-15T12:56:27Z",
+    "updated": "2022-09-15T12:56:27Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 10,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320fc8bf61922fad0bc52",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "OUTSIDE_SERVERLESS_METRIC_THRESHOLD",
+    "created": "2022-09-15T12:56:28Z",
+    "updated": "2022-09-15T12:56:28Z",
+    "enabled": true,
+    "metricThreshold": {
+      "metricName": "SERVERLESS_DATA_SIZE_TOTAL",
+      "operator": "GREATER_THAN",
+      "threshold": 0.75,
+      "units": "TERABYTES",
+      "mode": "AVERAGE"
+    },
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320fc9820246c655aa2b4",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "OUTSIDE_SERVERLESS_METRIC_THRESHOLD",
+    "created": "2022-09-15T12:56:28Z",
+    "updated": "2022-09-15T12:56:28Z",
+    "enabled": true,
+    "metricThreshold": {
+      "metricName": "SERVERLESS_CONNECTIONS_PERCENT",
+      "operator": "GREATER_THAN",
+      "threshold": 80,
+      "units": "RAW",
+      "mode": "AVERAGE"
+    },
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320fd2febff2871ad0bf8",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "JOINED_GROUP",
+    "created": "2022-09-15T12:56:29Z",
+    "updated": "2022-09-15T12:56:29Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP"
+      }
+    ]
+  },
+  {
+    "id": "632320fd54be5e4267dfad50",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "HOST_MONGOT_CRASHING_OOM",
+    "created": "2022-09-15T12:56:29Z",
+    "updated": "2022-09-15T12:56:29Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320fe3b2aca391727cd8f",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "TRIGGER_FAILURE",
+    "created": "2022-09-15T12:56:30Z",
+    "updated": "2022-09-15T12:56:30Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320fe5994c816e9a7d427",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "HOST_NOT_ENOUGH_DISK_SPACE",
+    "created": "2022-09-15T12:56:30Z",
+    "updated": "2022-09-15T12:56:30Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320ff8f974546228b5446",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "SYNC_FAILURE",
+    "created": "2022-09-15T12:56:31Z",
+    "updated": "2022-09-15T12:56:31Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320ff98fd2e5f55b6f251",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "REQUEST_RATE_LIMIT",
+    "created": "2022-09-15T12:56:31Z",
+    "updated": "2022-09-15T12:56:31Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632320ffd749d51d3eef9692",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "FTS_INDEX_DELETION_FAILED",
+    "created": "2022-09-15T12:56:31Z",
+    "updated": "2022-09-15T12:56:31Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632321009820246c655aa351",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "FTS_INDEX_BUILD_COMPLETE",
+    "created": "2022-09-15T12:56:32Z",
+    "updated": "2022-09-15T12:56:32Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 5,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "63232100a0008e463cdd8170",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "ONLINE_ARCHIVE_INSUFFICIENT_INDEXES_CHECK",
+    "created": "2022-09-15T12:56:32Z",
+    "updated": "2022-09-15T12:56:32Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 360,
+        "smsEnabled": false,
+        "typeName": "GROUP"
+      }
+    ]
+  },
+  {
+    "id": "632321014728e07242307bb8",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "FTS_INDEX_BUILD_FAILED",
+    "created": "2022-09-15T12:56:33Z",
+    "updated": "2022-09-15T12:56:33Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 5,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "63232101873b78434d2dad55",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "OUTSIDE_SERVERLESS_METRIC_THRESHOLD",
+    "created": "2022-09-15T12:56:33Z",
+    "updated": "2022-09-15T12:56:33Z",
+    "enabled": true,
+    "metricThreshold": {
+      "metricName": "SERVERLESS_TOTAL_READ_UNITS",
+      "operator": "GREATER_THAN",
+      "threshold": 0.25,
+      "units": "MILLION_RPU",
+      "mode": "AVERAGE"
+    },
+    "notifications": [
+      {
+        "delayMin": 30,
+        "emailEnabled": true,
+        "intervalMin": 720,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "6323210231513d47f8941f5d",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "OUTSIDE_SERVERLESS_METRIC_THRESHOLD",
+    "created": "2022-09-15T12:56:34Z",
+    "updated": "2022-09-15T12:56:34Z",
+    "enabled": true,
+    "metricThreshold": {
+      "metricName": "SERVERLESS_TOTAL_READ_UNITS",
+      "operator": "GREATER_THAN",
+      "threshold": 1,
+      "units": "MILLION_RPU",
+      "mode": "AVERAGE"
+    },
+    "notifications": [
+      {
+        "delayMin": 5,
+        "emailEnabled": true,
+        "intervalMin": 120,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "6323210298fd2e5f55b6f295",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "LOG_FORWARDER_FAILURE",
+    "created": "2022-09-15T12:56:34Z",
+    "updated": "2022-09-15T12:56:34Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "63232103a0008e463cdd81ac",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "FTS_INDEX_DELETION_FAILED",
+    "created": "2022-09-15T12:56:35Z",
+    "updated": "2022-09-15T12:56:35Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "6323210498fd2e5f55b6f2d7",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "OUTSIDE_METRIC_THRESHOLD",
+    "created": "2022-09-15T12:56:36Z",
+    "updated": "2022-09-15T12:56:36Z",
+    "enabled": true,
+    "metricThreshold": {
+      "metricName": "SEARCH_MAX_NUMBER_OF_LUCENE_DOCS",
+      "operator": "GREATER_THAN",
+      "threshold": 1,
+      "units": "BILLION",
+      "mode": "AVERAGE"
+    },
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "63232104fb2e3b147ffde253",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "FTS_INDEX_BUILD_FAILED",
+    "created": "2022-09-15T12:56:36Z",
+    "updated": "2022-09-15T12:56:36Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 5,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632321058bf61922fad0bd1c",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "FTS_INDEX_DELETION_FAILED",
+    "created": "2022-09-15T12:56:37Z",
+    "updated": "2022-09-15T12:56:37Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "63232105c7b0e32b2c3f99bd",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "FTS_INDEX_BUILD_COMPLETE",
+    "created": "2022-09-15T12:56:37Z",
+    "updated": "2022-09-15T12:56:37Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 5,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "63232105ccd95665970b644d",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "FTS_INDEX_BUILD_COMPLETE",
+    "created": "2022-09-15T12:56:37Z",
+    "updated": "2022-09-15T12:56:37Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 5,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632321062febff2871ad0ceb",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "FTS_INDEX_BUILD_FAILED",
+    "created": "2022-09-15T12:56:38Z",
+    "updated": "2022-09-15T12:56:38Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 5,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "63232107006da244f5ee01b5",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "SYNC_FAILURE",
+    "created": "2022-09-15T12:56:39Z",
+    "updated": "2022-09-15T12:56:39Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "6323210754be5e4267dfae8d",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "REQUEST_RATE_LIMIT",
+    "created": "2022-09-15T12:56:39Z",
+    "updated": "2022-09-15T12:56:39Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "632321078bf61922fad0bd51",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "TRIGGER_FAILURE",
+    "created": "2022-09-15T12:56:39Z",
+    "updated": "2022-09-15T12:56:39Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "63232108d749d51d3eef9785",
+    "groupId": "6228b4a3311b6a2c9c48132e",
+    "eventTypeName": "LOG_FORWARDER_FAILURE",
+    "created": "2022-09-15T12:56:40Z",
+    "updated": "2022-09-15T12:56:40Z",
+    "enabled": true,
+    "notifications": [
+      {
+        "delayMin": 0,
+        "emailEnabled": true,
+        "intervalMin": 60,
+        "smsEnabled": false,
+        "typeName": "GROUP",
+        "roles": [
+          "GROUP_OWNER"
+        ]
+      }
+    ]
+  }
+]
