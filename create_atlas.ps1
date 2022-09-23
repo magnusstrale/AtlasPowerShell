@@ -19,16 +19,18 @@ param(
     [Parameter(Mandatory)] [string]$environment,
     [Parameter(Mandatory)] [string]$publicKey,
     [Parameter(Mandatory)] [string]$privateKey,
-    [ValidateSet("M0", "M2", "M5", "M10", "M20", "M30", "M40", "M50", "M60", "M80", "M140", "M200", "M300", "M400", "M700", IgnoreCase=$false)]
-    [string]$tier = "M10",                          # Size of cluster to create
-    [string]$region = "US_EAST_2",                   # Atlas region where to create cluster. Note that the name differs from cloud provider names!
-    [ValidateSet("AZURE", "AWS", IgnoreCase=$false)]
-    [string]$provider = "AZURE",                    # Cloud provider to use, note that GCP is not supported
+    [ValidateSet("M0", "M2", "M5", "M10", "M20", "M30", "M40", "M50", "M60", "M80", "M140", "M200", "M300", "M400", "M700", IgnoreCase = $false)]
+    [string]$tier = "M10", # Size of cluster to create
+    [string]$region = "US_EAST_2", # Atlas region where to create cluster. Note that the name differs from cloud provider names!
+    [ValidateSet("AZURE", "AWS", IgnoreCase = $false)]
+    [string]$provider = "AZURE", # Cloud provider to use, note that GCP is not supported
     [ValidateSet(8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096)]
-    [int]$diskSizeGB,                               # Requested size of disk
+    [int]$diskSizeGB, # Requested size of disk
     [ValidateSet("4.2", "4.4", "5.0", "6.0")]
-    [string]$mdbVersion = "5.0",                    # Version of MongoDB to create
-    [string]$role = "readWriteAnyDatabase@admin",   # Default role for the created user
+    [string]$mdbVersion = "5.0", # Version of MongoDB to create
+    [string]$template, # Template for multi-region cluster, will use parameters to set instanceSize, providerName and clusterName
+    [string]$config, # Configuration for multi-region cluster, will use the file as-is except for replacing the clusterName
+    [string]$role = "readWriteAnyDatabase@admin", # Default role for the created user
     [string]$atlasProfile = "default"
     #[bool]$debug = $false                           # If true, will display the atlas CLI commands that are executed
 )
@@ -211,7 +213,7 @@ function CreateProject($projectName) {
 }
 
 function MapAzureTierToDefaultDiskSize($tier) {
-    switch($tier) {
+    switch ($tier) {
         "M0" { 8 }
         "M2" { 8 }
         "M5" { 8 }
@@ -230,8 +232,27 @@ function MapAzureTierToDefaultDiskSize($tier) {
     }
 }
 
+function ProcessCreateJsonFromTemplate() {
+    $jsonTemplate = Get-Content -Raw $template | ConvertFrom-Json
+    $jsonTemplate.name = $(ClusterName)
+    foreach ($spec in $jsonTemplate.replicationSpecs[0].regionConfigs) {
+        $spec.electableSpecs.instanceSize = $tier
+        $spec.providerName = $provider
+    }
+    $tempFile = New-TemporaryFile
+    $outputFile = $tempFile.FullName + ".json"
+    $jsonTemplate | ConvertTo-Json -Depth 10 | Set-Content -Path $outputFile
+    return $outputFile
+}
+
 function CreateCluster($clusterName, $enableBackup) {
-    $command = "cluster create $(ClusterName) --tier $($tier) --provider $($provider) --region $($region)"
+    if ($template) {
+        $outputFile = ProcessCreateJsonFromTemplate
+        $command = "cluster create --file $($outputFile)"
+    }
+    else {
+        $command = "cluster create $(ClusterName) --tier $($tier) --provider $($provider) --region $($region)"
+    }
     if ($diskSizeGB) {
         $command += " --diskSizeGB $($diskSizeGB)"
     }
@@ -286,6 +307,10 @@ if (-not (Test-Path $(AlertsFilename))) {
     Write-Host "File $(AlertsFilename) is missing. Cannot configure alerts."
     Exit 1
 }
+if ($template -and (-not (Test-Path $($template)))) {
+    Write-Host "File $($template) is missing. Cannot create multi-region cluster based template."
+    Exit 1
+}
 
 Write-Host "Creating project $(ProjectName)"
 $projectId = CreateProject ProjectName
@@ -296,7 +321,11 @@ Write-Host "Creating alerts from $($alertsFilename)"
 CreateAlerts $alertsFilename
 Write-Host "Alerts created"
 
-Write-Host "Creating cluster $(ClusterName) as $($tier), with $($provider) in region $($region)"
+if ($template) {
+    Write-Host "Creating cluster $(ClusterName) as $($tier), with $($provider) in multiple regions, see $($template) for details"
+} else {
+    Write-Host "Creating cluster $(ClusterName) as $($tier), with $($provider) in region $($region)"
+}
 if (($provider -eq "AZURE") -and -not $diskSizeGB) {
     # Azure requires this parameter to be set, sice the default value of 2GB is invalid for Azure clusters
     $diskSizeGB = MapAzureTierToDefaultDiskSize $tier

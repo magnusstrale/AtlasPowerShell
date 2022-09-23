@@ -1,0 +1,29 @@
+{
+    "name":"",
+    "clusterType":"REPLICASET",
+    "replicationSpecs":[
+      {
+        "regionConfigs":[
+          {
+            "electableSpecs":{
+              "instanceSize":"",
+              "nodeCount":2
+            },
+            "priority":7,
+            "providerName":"",
+            "regionName":"US_EAST_2"
+          },
+          {
+            "electableSpecs":{
+              "instanceSize":"",
+              "nodeCount":1
+            },
+            "priority":6,
+            "providerName":"",
+            "regionName":"US_CENTRAL"
+          }
+        ]
+      }
+    ]
+  }
+  
