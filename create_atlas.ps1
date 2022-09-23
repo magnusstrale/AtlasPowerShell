@@ -21,7 +21,7 @@ param(
     [Parameter(Mandatory)] [string]$privateKey,
     [ValidateSet("M0", "M2", "M5", "M10", "M20", "M30", "M40", "M50", "M60", "M80", "M140", "M200", "M300", "M400", "M700", IgnoreCase=$false)]
     [string]$tier = "M10",                          # Size of cluster to create
-    [string]$region = "UK_SOUTH",                   # Atlas region where to create cluster. Note that the name differs from cloud provider names!
+    [string]$region = "US_EAST_2",                   # Atlas region where to create cluster. Note that the name differs from cloud provider names!
     [ValidateSet("AZURE", "AWS", IgnoreCase=$false)]
     [string]$provider = "AZURE",                    # Cloud provider to use, note that GCP is not supported
     [ValidateSet(8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096)]
@@ -142,6 +142,7 @@ function ProviderSpecificRegionName() {
         }
         "AZURE" {
             switch ($region.ToUpper()) {
+                # Europe
                 "EUROPE_NORTH" { "northeurope" }
                 "EUROPE_WEST" { "westeurope" }
                 "UK_SOUTH" { "uksouth" }
@@ -155,7 +156,46 @@ function ProviderSpecificRegionName() {
                 "NORWAY_EAST" { "norwayeast" }
                 "NORWAY_WEST" { "norwaywest " }
                 "SWEDEN_CENTRAL" { "swedencentral" }
-                "SWEDEN_SOUTH" { "swedensouth " }
+                "SWEDEN_SOUTH" { "swedensouth" }
+
+                #Americas
+                "US_CENTRAL" { "centralus" }
+                "US_EAST" { "eastus" }
+                "US_EAST_2" { "eastus2" }
+                "US_NORTH_CENTRAL" { "northcentralus" }
+                "US_WEST" { "westus" }
+                "US_WEST_2" { "westus2" }
+                "US_WEST_3" { "westus3" }
+                "US_WEST_CENTRAL" { "westcentralus" }
+                "US_SOUTH_CENTRAL" { "southcentralus" }
+                "BRAZIL_SOUTH" { "brazilsouth" }
+                "BRAZIL_SOUTHEAST" { "brazilsoutheast" }
+                "CANADA_EAST" { "canadaeast" }
+                "CANADA_CENTRAL" { "canadacentral" }
+
+                #Asia Pacific
+                "ASIA_EAST" { "eastasia" }
+                "ASIA_SOUTH_EAST" { "southeastasia" }
+                "AUSTRALIA_CENTRAL" { "australiacentral" }
+                "AUSTRALIA_CENTRAL_2" { "australiacentral2" }
+                "AUSTRALIA_EAST" { "australiaeast" }
+                "AUSTRALIA_SOUTH_EAST" { "australiasoutheast" }
+                "INDIA_CENTRAL" { "centralindia" }
+                "INDIA_SOUTH" { "southindia" }
+                "INDIA_WEST" { "westindia" }
+                "JAPAN_EAST" { "japaneast" }
+                "JAPAN_WEST" { "japanwest" }
+                "KOREA_CENTRAL" { "koreacentral" }
+                "KOREA_SOUTH" { "koreasouth" }
+
+                #Africa
+                "SOUTH_AFRICA_NORTH" { "southafricanorth" }
+                "SOUTH_AFRICA_WEST" { "southafricawest" }
+
+                #Middle East
+                "UAE_NORTH" { "uaenorth" }
+                "UAE_CENTRAL" { "uaecentral" }
+
                 default {
                     Write-Host "No known mapping for Atlas region $($region) to Azure region"
                     Exit 1
