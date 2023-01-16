@@ -7,7 +7,7 @@ production-quality and should not be deployed or
 run against production instances unless reviewed,
 modified and hardened by an expert party.
 This code works as an example under an engagement between
-StoneX Group and MongoDB Professional Services, and MongoDB
+<client> and MongoDB Professional Services, and MongoDB
 has no obligation to support it.
 
 #>
